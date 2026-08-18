@@ -33,7 +33,7 @@
   auth.id = "cloud-auth";
   auth.innerHTML = `
     <div class="box">
-      <img src="/LOGODASHBOARD.png" alt="Logo CONTROLE DE GASTOS">
+      <img src="./LOGODASHBOARD.png" alt="Logo CONTROLE DE GASTOS">
       <h1>CONTROLE DE GASTOS</h1>
       <p>Entre para acessar seus dados em todos os dispositivos.</p>
       <form id="cloud-login-form">
@@ -76,7 +76,7 @@
   const resetRedirect = () => `${window.location.origin}${window.location.pathname}`;
   const showResetForm = () => {
     document.querySelector('#cloud-auth .box').innerHTML = `
-      <img src="/LOGODASHBOARD.png" alt="Logo CONTROLE DE GASTOS">
+      <img src="./LOGODASHBOARD.png" alt="Logo CONTROLE DE GASTOS">
       <h1>Nova senha</h1>
       <p>Escolha uma nova senha para acessar seus dados.</p>
       <form id="cloud-reset-form">
