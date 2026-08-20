@@ -2,14 +2,14 @@
   "name": "CONTROLE DE GASTOS",
   "short_name": "CONTROLE DE GASTOS",
   "description": "Controle mensal de gastos, ganhos e saldo anual.",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#FAFAF8",
   "theme_color": "#173B63",
   "lang": "pt-BR",
   "icons": [
     {
-      "src": "/LOGODASHBOARD.png",
+      "src": "./LOGODASHBOARD.png",
       "sizes": "1254x1254",
       "type": "image/png",
       "purpose": "any maskable"
