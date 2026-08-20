@@ -7,19 +7,61 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1" />
     <title>CONTROLE DE GASTOS</title>
-    <meta name="theme-color" content="#173B63" />
+    <meta name="theme-color" content="#0b1220" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <link rel="manifest" href="./manifest.json" />
-    <link rel="apple-touch-icon" href="./LOGODASHBOARD.png" />
-    <link rel="icon" href="./LOGODASHBOARD.png" type="image/png" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/LOGODASHBOARD.png" />
+    <link rel="icon" href="/LOGODASHBOARD.png" type="image/png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <script type="module" crossorigin src="./assets/index-CappSnq9.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-BEsxC4KX.css">
-  </head>
+    <script type="module" crossorigin src="/assets/index-CappSnq9.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BEsxC4KX.css">
+  <style id="controle-gastos-dark-theme">
+:root{color-scheme:dark}
+html,body,#root{background:#0b1220!important;color:#e5e7eb!important}
+body{min-height:100vh}
+[class~="bg-[#E2E8F0]"]{background-color:#0b1220!important}
+[class~="bg-[#F8FAFC]"]{background-color:#111827!important}
+[class~="bg-[#F1F5F9]"]{background-color:#0f172a!important}
+.bg-white{background-color:#111827!important}
+.bg-gray-50{background-color:#0f172a!important}
+.bg-gray-100{background-color:#1e293b!important}
+.bg-gray-200{background-color:#334155!important}
+.text-gray-900{color:#f8fafc!important}
+.text-gray-800{color:#e5e7eb!important}
+.text-gray-700{color:#d1d5db!important}
+.text-gray-600{color:#cbd5e1!important}
+.text-gray-500,.text-gray-400{color:#94a3b8!important}
+.border-gray-100,.border-gray-200,.border-gray-300{border-color:#334155!important}
+.divide-gray-100>:not([hidden])~:not([hidden]){border-color:#334155!important}
+#cloud-auth{background:#0b1220!important;color:#e5e7eb!important}
+#cloud-auth .box{background:#111827!important;color:#e5e7eb!important;box-shadow:0 10px 35px rgba(0,0,0,.38)!important}
+#cloud-auth label{color:#cbd5e1!important}
+#cloud-auth h1{color:#f8fafc!important}
+#cloud-auth p{color:#94a3b8!important}
+input,textarea,select{background-color:#0f172a!important;color:#f8fafc!important;border-color:#475569!important}
+input::placeholder,textarea::placeholder{color:#64748b!important}
+.hover\\:bg-gray-50:hover{background-color:#1e293b!important}
+.hover\\:bg-gray-100:hover{background-color:#334155!important}
+.shadow-sm{box-shadow:0 4px 18px rgba(0,0,0,.28)!important}
+#root table td{color:#e2e8f0!important}
+#root table th{color:#cbd5e1!important}
+#root table td.text-\\[\\#16A34A\\]{color:#4ade80!important}
+#root table td.text-\\[\\#E11D48\\]{color:#fb7185!important}
+#root table td.text-gray-900{color:#f8fafc!important}
+#root table td[class~="text-[#E11D48]"]{color:#fb7185!important}
+#root table td[class~="text-[#16A34A]"]{color:#4ade80!important}
+[role="dialog"],[data-radix-dialog-content]{background:#111827!important;color:#e5e7eb!important;border-color:#334155!important}
+[role="dialog"] h1,[role="dialog"] h2,[role="dialog"] h3,[data-radix-dialog-content] h1,[data-radix-dialog-content] h2,[data-radix-dialog-content] h3{color:#f8fafc!important}
+[role="dialog"] label,[role="dialog"] p,[role="dialog"] span,[data-radix-dialog-content] label,[data-radix-dialog-content] p,[data-radix-dialog-content] span{color:#cbd5e1!important}
+[role="dialog"] input,[role="dialog"] textarea,[role="dialog"] select,[data-radix-dialog-content] input,[data-radix-dialog-content] textarea,[data-radix-dialog-content] select{background:#0f172a!important;color:#f8fafc!important;border-color:#475569!important}
+[role="dialog"] .border-gray-100,[role="dialog"] .border-gray-200,[data-radix-dialog-content] .border-gray-100,[data-radix-dialog-content] .border-gray-200{border-color:#334155!important}
+[role="dialog"] .bg-white,[data-radix-dialog-content] .bg-white{background:#111827!important}
+</style>
+</head>
 
   <body>
     <script id="manus-runtime">window.__MANUS_HOST_DEV__ = false;
@@ -83,7 +125,7 @@ Error generating stack: `+l.message+`
 </script>
 
     <div id="root"></div>
-    <script src="./sync.js"></script>
+    <script src="/sync.js"></script>
     <script
       defer
       src="%VITE_ANALYTICS_ENDPOINT%/umami"
