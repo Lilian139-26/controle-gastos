@@ -4,6 +4,10 @@
   const SUPABASE_URL = "https://otvkiavomycwxyvvmjli.supabase.co";
   const SUPABASE_KEY = "sb_publishable_57cayWsC9HfaPXgzsQBPlw_ANWvjDdE";
   const DATA_KEY = "dashboard-gastos-multi-ano-v2";
+  const REMOVED_ITEMS = new Set(["DOCE", "LIVRO", "SHAMPOO"]);
+  // Nunca limpar dados automaticamente ao abrir, entrar ou publicar.
+  // A remoção total ocorre somente pelo botão Reset da aplicação.
+  const EMPTY_TEST = false;
   const TABLE = "dashboard_data";
   let client = null;
   let user = null;
@@ -11,20 +15,54 @@
   let saveTimer = null;
   let applyingRemote = false;
 
+  // O tema escuro é permanente: aplica-se ao login e ao painel, independentemente
+  // do tema salvo no navegador ou das preferências do sistema.
+  const darkTheme = document.createElement("style");
+  darkTheme.id = "permanent-dark-theme";
+  darkTheme.textContent = `
+    :root { color-scheme: dark; }
+    html, body { background-color: #070b14 !important; color: #e2e8f0 !important; }
+    body [class~="bg-[#E2E8F0]"], body [class~="bg-white"] { background-color: #0f172a !important; }
+    body [class~="bg-gray-50"] { background-color: #111827 !important; }
+    body [class~="bg-gray-100"] { background-color: #1e293b !important; }
+    body [class~="bg-gray-200"] { background-color: #334155 !important; }
+    body [class~="text-gray-900"] { color: #f8fafc !important; }
+    body [class~="text-gray-800"] { color: #e5e7eb !important; }
+    body [class~="text-gray-700"] { color: #cbd5e1 !important; }
+    body [class~="text-gray-600"] { color: #94a3b8 !important; }
+    body [class~="text-gray-500"], body [class~="text-gray-400"] { color: #94a3b8 !important; }
+    body [class~="border-gray-100"], body [class~="border-gray-200"], body [class~="border-gray-300"] { border-color: #263449 !important; }
+    body [class~="hover:bg-gray-50/50"]:hover { background-color: #172033 !important; }
+    body input, body textarea, body select { background-color: #111827 !important; color: #f8fafc !important; border-color: #334155 !important; }
+    body input::placeholder, body textarea::placeholder { color: #64748b !important; }
+    body [class~="bg-[#F0FDF4]"] { background-color: #12332f !important; }
+    body [role="dialog"], body [data-radix-dialog-content] { background-color: #0f172a !important; color: #f8fafc !important; border-color: #263449 !important; box-shadow: 0 20px 55px rgba(0,0,0,.55) !important; }
+    body [role="dialog"] [class~="text-gray-900"], body [role="dialog"] [class~="text-gray-800"], body [role="dialog"] [class~="text-gray-700"] { color: #f8fafc !important; }
+    body [role="dialog"] [class~="text-gray-600"], body [role="dialog"] [class~="text-gray-500"], body [role="dialog"] [class~="text-gray-400"] { color: #cbd5e1 !important; }
+    body [role="dialog"] [class~="border-gray-100"], body [role="dialog"] [class~="border-gray-200"] { border-color: #334155 !important; }
+    body [role="dialog"] button[class~="bg-white"], body [role~="dialog"] button[class~="variant-outline"] { background-color: #1e293b !important; color: #f8fafc !important; border-color: #475569 !important; }
+    body .comparison-card td, body .comparison-card td * { color: #f8fafc !important; }
+    body .comparison-card td.saldo-positive, body .comparison-card td.saldo-positive * { color: #22c55e !important; }
+    body .comparison-card td.saldo-negative, body .comparison-card td.saldo-negative * { color: #ef4444 !important; }
+    body .comparison-card th { color: #cbd5e1 !important; }
+    body .comparison-card tr { border-color: #334155 !important; }
+  `;
+  document.head.appendChild(darkTheme);
+
   const style = document.createElement("style");
   style.textContent = `
     #root { display: none !important; }
-    #cloud-auth { position: fixed; inset: 0; z-index: 2147483647; display:flex; align-items:center; justify-content:center; padding:20px; background:#f7fafc; font-family: ui-sans-serif,system-ui,sans-serif; }
-    #cloud-auth .box { width:min(420px,100%); background:white; border:1px solid #e5e7eb; border-radius:18px; padding:28px; box-shadow:0 18px 45px rgba(15,23,42,.12); }
+    #cloud-auth { position: fixed; inset: 0; z-index: 2147483647; display:flex; align-items:center; justify-content:center; padding:20px; background:#070b14; font-family: ui-sans-serif,system-ui,sans-serif; }
+    #cloud-auth .box { width:min(420px,100%); background:#0f172a; border:1px solid #263449; border-radius:18px; padding:28px; box-shadow:0 18px 45px rgba(0,0,0,.42); }
     #cloud-auth img { display:block; width:66px; height:66px; object-fit:contain; margin:0 auto 12px; border-radius:50%; }
-    #cloud-auth h1 { margin:0; text-align:center; color:#173b63; font-size:22px; font-weight:800; }
-    #cloud-auth p { color:#64748b; font-size:13px; line-height:1.5; text-align:center; margin:8px 0 20px; }
-    #cloud-auth label { display:block; color:#334155; font-size:12px; font-weight:700; margin:12px 0 5px; }
-    #cloud-auth input { width:100%; box-sizing:border-box; border:1px solid #cbd5e1; border-radius:9px; padding:11px 12px; font-size:15px; }
-    #cloud-auth button { width:100%; border:0; border-radius:9px; padding:12px; margin-top:16px; background:#173b63; color:white; font-weight:700; cursor:pointer; }
-    #cloud-auth button.secondary { margin-top:9px; background:#e8eef5; color:#173b63; }
+    #cloud-auth h1 { margin:0; text-align:center; color:#f8fafc; font-size:22px; font-weight:800; }
+    #cloud-auth p { color:#94a3b8; font-size:13px; line-height:1.5; text-align:center; margin:8px 0 20px; }
+    #cloud-auth label { display:block; color:#cbd5e1; font-size:12px; font-weight:700; margin:12px 0 5px; }
+    #cloud-auth input { width:100%; box-sizing:border-box; border:1px solid #334155; border-radius:9px; padding:11px 12px; font-size:15px; background:#111827; color:#f8fafc; }
+    #cloud-auth button { width:100%; border:0; border-radius:9px; padding:12px; margin-top:16px; background:#0D9488; color:#f8fafc; font-weight:700; cursor:pointer; }
+    #cloud-auth button.secondary { margin-top:9px; background:#1e293b; color:#cbd5e1; }
     #cloud-auth button:disabled { opacity:.6; cursor:wait; }
-    #cloud-auth .link-button { display:block; width:auto; margin:12px auto 0; padding:0; background:transparent; color:#173b63; text-decoration:underline; font-size:12px; font-weight:600; }
+    #cloud-auth .link-button { display:block; width:auto; margin:12px auto 0; padding:0; background:transparent; color:#5eead4; text-decoration:underline; font-size:12px; font-weight:600; }
     #cloud-auth .message { min-height:20px; margin-top:12px; text-align:center; color:#b42318; font-size:12px; }
   `;
   document.head.appendChild(style);
@@ -33,7 +71,7 @@
   auth.id = "cloud-auth";
   auth.innerHTML = `
     <div class="box">
-      <img src="./LOGODASHBOARD.png" alt="Logo CONTROLE DE GASTOS">
+      <img src="/LOGODASHBOARD.png" alt="Logo CONTROLE DE GASTOS">
       <h1>CONTROLE DE GASTOS</h1>
       <p>Entre para acessar seus dados em todos os dispositivos.</p>
       <form id="cloud-login-form">
@@ -67,7 +105,7 @@
       button.id = 'cloud-logout';
       button.textContent = 'Sair';
       button.title = 'Sair da conta';
-      Object.assign(button.style, { position: 'fixed', top: '14px', right: '16px', zIndex: '1000', border: '1px solid #dbe3ec', borderRadius: '8px', padding: '7px 13px', background: '#fff', color: '#173b63', fontWeight: '700', fontSize: '12px', cursor: 'pointer', boxShadow: '0 2px 8px rgba(15,23,42,.08)' });
+      Object.assign(button.style, { position: 'fixed', top: '14px', right: '16px', zIndex: '1000', border: '1px solid #334155', borderRadius: '8px', padding: '7px 13px', background: '#0f172a', color: '#f8fafc', fontWeight: '700', fontSize: '12px', cursor: 'pointer', boxShadow: '0 2px 8px rgba(15,23,42,.08)' });
       button.addEventListener('click', async () => { button.disabled = true; await client.auth.signOut(); window.location.reload(); });
       document.body.appendChild(button);
     }, 250);
@@ -76,7 +114,7 @@
   const resetRedirect = () => `${window.location.origin}${window.location.pathname}`;
   const showResetForm = () => {
     document.querySelector('#cloud-auth .box').innerHTML = `
-      <img src="./LOGODASHBOARD.png" alt="Logo CONTROLE DE GASTOS">
+      <img src="/LOGODASHBOARD.png" alt="Logo CONTROLE DE GASTOS">
       <h1>Nova senha</h1>
       <p>Escolha uma nova senha para acessar seus dados.</p>
       <form id="cloud-reset-form">
@@ -110,13 +148,25 @@
     });
   };
 
-  const emptyState = () => ({ cartoes: [], contasFixas: [], contasAdicionais: [], ganhos: {}, descricoesGanhos: {}, categoriaCores: {} });
+  const emptyState = () => ({ cartoes: [], contasFixas: [], contasAdicionais: [], ganhos: {}, descricoesGanhos: {}, categoriaCores: {}, deletedItems: [], resetAll: false });
   const mergeState = (base, incoming) => {
     const a = base && typeof base === 'object' ? base : emptyState();
     const b = incoming && typeof incoming === 'object' ? incoming : emptyState();
+    const deleted = new Set([
+      ...(Array.isArray(a.deletedItems) ? a.deletedItems : []),
+      ...(Array.isArray(b.deletedItems) ? b.deletedItems : [])
+    ].map(name => String(name).trim()).filter(Boolean));
+    // Um item presente no estado mais recente foi recriado e deixa de ser excluído.
+    for (const collection of ['cartoes', 'contasFixas', 'contasAdicionais']) {
+      for (const item of b[collection] || []) deleted.delete(String(item.nome || '').trim());
+    }
     const mergeItems = (left = [], right = []) => {
-      const result = left.map(item => ({ ...item, meses: { ...(item.meses || {}) } }));
+      const result = left
+        .filter(item => !deleted.has(String(item.nome || '').trim()))
+        .map(item => ({ ...item, meses: { ...(item.meses || {}) } }));
       for (const item of right || []) {
+        const name = String(item.nome || '').trim();
+        if (!name || deleted.has(name)) continue;
         const index = result.findIndex(existing => existing.nome === item.nome);
         if (index < 0) result.push({ ...item, meses: { ...(item.meses || {}) } });
         else result[index] = { ...result[index], ...item, meses: { ...(result[index].meses || {}), ...(item.meses || {}) } };
@@ -131,7 +181,8 @@
       contasAdicionais: mergeItems(a.contasAdicionais, b.contasAdicionais),
       ganhos: { ...(a.ganhos || {}), ...(b.ganhos || {}) },
       descricoesGanhos: { ...(a.descricoesGanhos || {}), ...(b.descricoesGanhos || {}) },
-      categoriaCores: { ...(a.categoriaCores || {}), ...(b.categoriaCores || {}) }
+      categoriaCores: { ...(a.categoriaCores || {}), ...(b.categoriaCores || {}) },
+      deletedItems: [...deleted]
     };
   };
   const normalizeMoney = value => {
@@ -148,25 +199,30 @@
   };
   const normalizeFlatState = state => {
     const result = mergeState(emptyState(), state);
+    result.deletedItems = [...new Set([...(result.deletedItems || []), ...REMOVED_ITEMS].map(name => String(name).trim()).filter(Boolean))];
     for (const collection of ['cartoes', 'contasFixas', 'contasAdicionais']) {
-      result[collection] = (result[collection] || []).map(item => ({
-        ...item,
-        meses: Object.fromEntries(Object.entries(item.meses || {}).map(([month, value]) => [month, normalizeMoney(value)])),
-        total: Object.values(item.meses || {}).reduce((sum, value) => sum + normalizeMoney(value), 0)
-      }));
+      result[collection] = (result[collection] || [])
+        .filter(item => !result.deletedItems.includes(String(item.nome || '').trim()))
+        .map(item => ({
+          ...item,
+          meses: Object.fromEntries(Object.entries(item.meses || {}).map(([month, value]) => [month, normalizeMoney(value)])),
+          total: Object.values(item.meses || {}).reduce((sum, value) => sum + normalizeMoney(value), 0)
+        }));
     }
     result.ganhos = Object.fromEntries(Object.entries(result.ganhos || {}).map(([month, value]) => [month, normalizeMoney(value)]));
     return result;
   };
-  const isFlatState = state => !!state && typeof state === 'object' && (Array.isArray(state.cartoes) || Array.isArray(state.contasFixas) || Array.isArray(state.contasAdicionais) || !!state.ganhos);
+  const isFlatState = state => !!state && typeof state === 'object' && (Array.isArray(state.cartoes) || Array.isArray(state.contasFixas) || Array.isArray(state.contasAdicionais) || !!state.ganhos || Array.isArray(state.deletedItems));
   const isYearState = state => !!state && typeof state === 'object' && !isFlatState(state) && Object.keys(state).some(key => /^20\d{2}$/.test(key));
   const normalizeStoredState = state => {
+    if (state?.resetAll) return { resetAll: true };
     if (isFlatState(state)) return { '2026': normalizeFlatState(state) };
     const source = isYearState(state) ? state : {};
     return Object.fromEntries(Object.entries(source).filter(([year]) => /^20\d{2}$/.test(year)).map(([year, value]) => [year, normalizeFlatState(value)]));
   };
   const mergeStoredState = (base, incoming) => {
     const left = normalizeStoredState(base);
+    if (left.resetAll || (incoming && incoming.resetAll)) return { resetAll: true };
     const right = normalizeStoredState(incoming);
     const years = new Set([...Object.keys(left), ...Object.keys(right)]);
     return Object.fromEntries([...years].map(year => [year, normalizeFlatState(mergeState(left[year] || emptyState(), right[year] || emptyState()))]));
@@ -177,7 +233,20 @@
     if (!raw) return;
     saving = true;
     try {
-      const local = normalizeStoredState(JSON.parse(raw));
+      const parsed = JSON.parse(raw);
+      if (parsed?.resetAll) {
+        await client.from(TABLE).upsert({ user_id: user.id, data: {}, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+        applyingRemote = true;
+        localStorage.setItem(DATA_KEY, JSON.stringify({}));
+        applyingRemote = false;
+        return;
+      }
+      if (false) {
+        const authoritative = normalizeStoredState(parsed);
+        await client.from(TABLE).upsert({ user_id: user.id, data: authoritative, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+        return;
+      }
+      const local = normalizeStoredState(parsed);
       const { data: existing } = await client.from(TABLE).select('data').eq('user_id', user.id).maybeSingle();
       const merged = mergeStoredState(existing?.data || {}, local);
       localStorage.setItem(DATA_KEY, JSON.stringify(merged));
@@ -194,13 +263,28 @@
   async function syncCurrentUser() {
     const { data, error } = await client.from(TABLE).select("data").eq("user_id", user.id).maybeSingle();
     if (error) throw error;
-    if (data?.data) {
+    const rawLocal = localData();
+    let parsedLocal = {};
+    try { parsedLocal = rawLocal ? JSON.parse(rawLocal) : {}; } catch { parsedLocal = {}; }
+    if (false) {
       applyingRemote = true;
-      const local = localData();
-      const merged = mergeStoredState(data.data, local ? JSON.parse(local) : {});
-      localStorage.setItem(DATA_KEY, JSON.stringify(merged));
+      localStorage.setItem(DATA_KEY, JSON.stringify({}));
+      await client.from(TABLE).upsert({ user_id: user.id, data: {}, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
       applyingRemote = false;
-    } else if (localData()) {
+    } else if (parsedLocal?.resetAll) {
+      applyingRemote = true;
+      await client.from(TABLE).upsert({ user_id: user.id, data: {}, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+      localStorage.setItem(DATA_KEY, JSON.stringify({}));
+      applyingRemote = false;
+    } else if (data?.data) {
+      applyingRemote = true;
+      const merged = mergeStoredState(data.data, parsedLocal);
+      localStorage.setItem(DATA_KEY, JSON.stringify(merged.resetAll ? {} : merged));
+      applyingRemote = false;
+      if (JSON.stringify(merged) !== JSON.stringify(data.data)) {
+        await client.from(TABLE).upsert({ user_id: user.id, data: merged, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+      }
+    } else if (rawLocal) {
       await writeRemote();
     } else {
       await client.from(TABLE).upsert({ user_id: user.id, data: {}, updated_at: new Date().toISOString() }, { onConflict: "user_id" });
