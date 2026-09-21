@@ -1,4 +1,4 @@
-const CACHE_NAME = 'controle-de-gastos-shell-v14-login-fix';
+const CACHE_NAME = 'controle-de-gastos-shell-v15-normalizer-fix';
 const APP_SHELL = ['./', './index.html', './manifest.json', './LOGODASHBOARD.png'];
 const NETWORK_FIRST = /\.(?:html|js|css|json)$/;
 
