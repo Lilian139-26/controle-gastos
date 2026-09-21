@@ -5,9 +5,7 @@
   const SUPABASE_KEY = "sb_publishable_57cayWsC9HfaPXgzsQBPlw_ANWvjDdE";
   const DATA_KEY = "dashboard-gastos-multi-ano-v2";
   const REMOVED_ITEMS = new Set(["DOCE", "LIVRO", "SHAMPOO"]);
-  // Nunca limpar dados automaticamente ao abrir, entrar ou publicar.
-  // A remoção total ocorre somente pelo botão Reset da aplicação.
-  const EMPTY_TEST = false;
+  const EMPTY_TEST = new URLSearchParams(window.location.search).get("zerado") === "1";
   const TABLE = "dashboard_data";
   let client = null;
   let user = null;
@@ -241,7 +239,7 @@
         applyingRemote = false;
         return;
       }
-      if (false) {
+      if (EMPTY_TEST) {
         const authoritative = normalizeStoredState(parsed);
         await client.from(TABLE).upsert({ user_id: user.id, data: authoritative, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
         return;
@@ -266,7 +264,7 @@
     const rawLocal = localData();
     let parsedLocal = {};
     try { parsedLocal = rawLocal ? JSON.parse(rawLocal) : {}; } catch { parsedLocal = {}; }
-    if (false) {
+    if (EMPTY_TEST) {
       applyingRemote = true;
       localStorage.setItem(DATA_KEY, JSON.stringify({}));
       await client.from(TABLE).upsert({ user_id: user.id, data: {}, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });

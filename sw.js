@@ -1,5 +1,5 @@
-const CACHE_NAME = 'controle-de-gastos-shell-v8-preserve-data';
-const APP_SHELL = ['./', './index.html', './manifest.json', './LOGODASHBOARD.png'];
+const CACHE_NAME = 'controle-de-gastos-shell-v7-empty-dark';
+const APP_SHELL = ['/', '/index.html', '/manifest.json', '/LOGODASHBOARD.png'];
 const NETWORK_FIRST = /\.(?:html|js|css|json)$/;
 
 self.addEventListener('install', (event) => {
@@ -31,5 +31,5 @@ self.addEventListener('fetch', (event) => {
     const copy = response.clone();
     caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
     return response;
-  }).catch(() => caches.match('./index.html'))));
+  }).catch(() => caches.match('/'))));
 });
