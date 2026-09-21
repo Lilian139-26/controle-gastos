@@ -1,4 +1,4 @@
-const CACHE_NAME = 'controle-de-gastos-shell-v10-dedupe-fix';
+const CACHE_NAME = 'controle-de-gastos-shell-v11-global-dedupe';
 const APP_SHELL = ['./', './index.html', './manifest.json', './LOGODASHBOARD.png'];
 const NETWORK_FIRST = /\.(?:html|js|css|json)$/;
 
