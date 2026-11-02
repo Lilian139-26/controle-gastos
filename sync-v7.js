@@ -4,6 +4,7 @@
   const SUPABASE_URL = "https://otvkiavomycwxyvvmjli.supabase.co";
   const SUPABASE_KEY = "sb_publishable_57cayWsC9HfaPXgzsQBPlw_ANWvjDdE";
   const DATA_KEY = "dashboard-gastos-multi-ano-v2";
+  const USER_KEY = "dashboard-gastos-current-user-v1";
   const REMOVED_ITEMS = new Set(["DOCE", "LIVRO", "SHAMPOO"]);
   const EMPTY_TEST = new URLSearchParams(window.location.search).get("zerado") === "1";
   const TABLE = "dashboard_data";
@@ -311,7 +312,8 @@
   async function syncCurrentUser() {
     const { data, error } = await client.from(TABLE).select('data').eq('user_id', user.id).maybeSingle();
     if (error) throw error;
-    const rawLocal = localData();
+    const previousUserId = localStorage.getItem(USER_KEY);
+    const rawLocal = previousUserId === user.id ? localData() : null;
     let parsedLocal = {};
     try { parsedLocal = rawLocal ? JSON.parse(rawLocal) : {}; } catch { parsedLocal = {}; }
     let nextData;
@@ -323,6 +325,7 @@
       nextData = normalizeStoredState(parsedLocal);
     }
     applyingRemote = true;
+    localStorage.setItem(USER_KEY, user.id);
     localStorage.setItem(DATA_KEY, JSON.stringify(nextData));
     applyingRemote = false;
     const { error: writeError } = await client.from(TABLE).upsert(
