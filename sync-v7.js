@@ -105,7 +105,14 @@
       button.textContent = 'Sair';
       button.title = 'Sair da conta';
       Object.assign(button.style, { position: 'fixed', top: '14px', right: '16px', zIndex: '1000', border: '1px solid #334155', borderRadius: '8px', padding: '7px 13px', background: '#0f172a', color: '#f8fafc', fontWeight: '700', fontSize: '12px', cursor: 'pointer', boxShadow: '0 2px 8px rgba(15,23,42,.08)' });
-      button.addEventListener('click', async () => { button.disabled = true; await client.auth.signOut(); window.location.reload(); });
+      button.addEventListener('click', async () => {
+        button.disabled = true;
+        // Remove somente o cache local ao trocar de conta. Os dados remotos
+        // permanecem preservados na conta que acabou de sair.
+        localStorage.removeItem(DATA_KEY);
+        await client.auth.signOut();
+        window.location.reload();
+      });
       document.body.appendChild(button);
     }, 250);
   };
